@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>{{ course.name }} - Online Course</title>
+    <title>{{ course.name }} - OnlineCourse</title>
 
     <!-- Bootstrap CSS -->
     <link
@@ -15,7 +15,6 @@
 
 <body>
 
-<!-- Navigation Bar -->
 <nav class="navbar navbar-dark bg-primary">
     <div class="container">
         <a class="navbar-brand" href="#">
@@ -24,8 +23,6 @@
     </div>
 </nav>
 
-
-<!-- Course Details -->
 <div class="container mt-5">
 
     <div class="card shadow">
@@ -50,10 +47,8 @@
 
             <hr>
 
-            <!-- Lessons -->
-            <h3 class="mb-3">
-                Course Lessons
-            </h3>
+            <!-- All Related Lessons -->
+            <h3 class="mb-3">Lessons</h3>
 
             <div class="list-group">
 
@@ -86,7 +81,7 @@
                 {% empty %}
 
                     <div class="alert alert-warning">
-                        No lessons are available for this course.
+                        No lessons available for this course.
                     </div>
 
                 {% endfor %}
@@ -99,8 +94,6 @@
 
 </div>
 
-
-<!-- Bootstrap JavaScript -->
 <script
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
 </script>
