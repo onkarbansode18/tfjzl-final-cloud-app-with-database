@@ -10,7 +10,7 @@ def submit(request, course_id):
     Submit the exam for a particular course.
 
     - Gets all questions belonging to the course
-    - Checks the selected answers
+    - Checks the selected answers using is_get_score()
     - Calculates the score
     - Saves each answer as a Submission
     - Redirects to the result page
@@ -24,12 +24,6 @@ def submit(request, course_id):
         questions = Question.objects.filter(
             lesson__course=course
         )
-
-        # Total number of questions
-        total_questions = questions.count()
-
-        # Initial score
-        score = 0
 
         # Remove previous submissions of this user for this course
         Submission.objects.filter(
@@ -55,12 +49,10 @@ def submit(request, course_id):
                     question=question
                 )
 
-                # Check whether the answer is correct
-                is_correct = selected_choice.is_correct
-
-                # Increase score if correct
-                if is_correct:
-                    score += 1
+                # Check answer using the required method
+                is_correct = question.is_get_score(
+                    selected_choice
+                )
 
                 # Save submission
                 Submission.objects.create(
@@ -70,10 +62,17 @@ def submit(request, course_id):
                     is_correct=is_correct
                 )
 
+        # Get the latest submission for this course
+        latest_submission = Submission.objects.filter(
+            user=request.user,
+            question__lesson__course=course
+        ).order_by("-submitted_at").first()
+
         # Redirect to result page
         return redirect(
             "show_exam_result",
-            course_id=course.id
+            course_id=course.id,
+            submission_id=latest_submission.id
         )
 
     # If request is not POST
@@ -81,7 +80,7 @@ def submit(request, course_id):
 
 
 @login_required
-def show_exam_result(request, course_id):
+def show_exam_result(request, course_id, submission_id):
     """
     Display the exam result for the logged-in user.
 
@@ -98,7 +97,15 @@ def show_exam_result(request, course_id):
         id=course_id
     )
 
-    # Get submissions made by the current user
+    # Get the selected submission
+    submission = get_object_or_404(
+        Submission,
+        id=submission_id,
+        user=request.user
+    )
+
+    # Get all submissions made by the current user
+    # for this course
     submissions = Submission.objects.filter(
         user=request.user,
         question__lesson__course=course
@@ -112,10 +119,14 @@ def show_exam_result(request, course_id):
         lesson__course=course
     ).count()
 
-    # Calculate score
-    score = submissions.filter(
-        is_correct=True
-    ).count()
+    # Calculate score using is_get_score()
+    score = 0
+
+    for item in submissions:
+        if item.question.is_get_score(
+            item.selected_choice
+        ):
+            score += 1
 
     # Calculate percentage
     percentage = 0
@@ -126,6 +137,7 @@ def show_exam_result(request, course_id):
     # Data sent to template
     context = {
         "course": course,
+        "submission": submission,
         "submissions": submissions,
         "score": score,
         "total_questions": total_questions,
